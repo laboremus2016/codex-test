@@ -14,13 +14,16 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const playerWidth = 40;
-const playerHeight = 20;
+
+const playerHeight = 40; // taller to fit the gorilla body
 let playerX = canvas.width / 2 - playerWidth/2;
 const playerY = canvas.height - playerHeight - 10;
 const bullets = [];
 const enemies = [];
 let isGameOver = false;
 let score = 0;
+let animationFrame = 0;
+let frameCounter = 0;
 document.addEventListener('keydown', handleKeyDown);
 document.addEventListener('keyup', handleKeyUp);
 
@@ -66,6 +69,11 @@ function update() {
         spawnEnemy();
         enemySpawnTimer = 0;
     }
+
+    frameCounter++;
+    if (frameCounter % 20 === 0) {
+        animationFrame = (animationFrame + 1) % 2;
+    }
     for (let i = enemies.length-1; i>=0; i--) {
         enemies[i].y += enemies[i].speed;
         for (let j = bullets.length-1; j>=0; j--) {
@@ -91,10 +99,31 @@ function checkCollision(a, b) {
            a.y < b.y + b.height &&
            a.y + a.height > b.y;
 }
+
+function drawGorilla(x, y, frame) {
+    ctx.fillStyle = '#555';
+    // head
+    ctx.beginPath();
+    ctx.arc(x + playerWidth / 2, y + 8, 8, 0, Math.PI * 2);
+    ctx.fill();
+    // body
+    ctx.fillRect(x + 6, y + 16, playerWidth - 12, playerHeight - 16);
+    // arms
+    if (frame === 0) {
+        ctx.fillRect(x - 6, y + 16, 6, 14); // left arm down
+        ctx.fillRect(x + playerWidth, y + 16, 6, 14); // right arm down
+    } else {
+        ctx.fillRect(x - 6, y + 10, 6, 14); // left arm up
+        ctx.fillRect(x + playerWidth, y + 10, 6, 14); // right arm up
+    }
+    // legs
+    ctx.fillRect(x + 8, y + playerHeight, 6, 10);
+    ctx.fillRect(x + playerWidth - 14, y + playerHeight, 6, 10);
+}
 function draw() {
     ctx.clearRect(0,0,canvas.width, canvas.height);
-    ctx.fillStyle = '#0f0';
-    ctx.fillRect(playerX, playerY, playerWidth, playerHeight);
+    drawGorilla(playerX, playerY, animationFrame);
+
     ctx.fillStyle = '#fff';
     for (const b of bullets) {
         ctx.fillRect(b.x, b.y, b.width, b.height);
